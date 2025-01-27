@@ -1,0 +1,84 @@
+# basic use of vim
+
+i to insert (before the char)
+a to append (after the char)
+x to delete the char
+
+cmd
+    -:wq to save the file and exit
+    -:q! to trash the changes and exit directly
+    -dw to delete a word (from the cursor to the end of the world)
+
+<backspace> to delete a char before the block cursor
+
+cmd
+    -d$ delete to the end of the line
+    the commands made of two parts
+    that is operator and motion
+    d (operator) w (motion)
+    d
+    -w to the start of the next word (brace is infered to a word)
+    -e to the end of this word
+    -$ to the end of this line
+
+    w to the start of next word (space char is not regarded as a word)
+        maintain the start char
+    e to the end of this word
+        maintain the char after the end
+    number + operator do many times
+    2w move twice
+    0 move to the start of the line
+
+    d number motion (delete several words)
+    dw cursor on the space char will regard this space char as a word
+        like |world    |world
+    de do not obey this rule, delete the operator(.,;) and the space char
+        which will be seen as a part of next word
+        like |    world|   world
+
+    dd to delete a line
+    2dd to delete the following two lines
+
+    u to undo the last command
+    U to fix the whole line
+
+    ctrl+R undo the undos (act as ctrl+Y)
+
+    p to paste the last deleted text after cursor  (use dd dw d$)
+        (the deleted text will be restored for the p command)
+
+    r + char to replace the char on the cursor
+
+    ce to change until the end of a word (act like de and i,
+        but you cant insert any char before the char you press ce)
+    cc does the same to whole line (act as dd and i, but dont delete \n)
+
+    c number motion
+    cw c$(end of line) the motions are the same
+    cw (including the space)
+    ce (dont include)
+    c$ to the end of the line
+
+
+
+    ctrl G to shoe the position in the file
+    G to move to the bottom of the file
+    gg to move to the start of the file
+    number G skip to the line
+    number gg   the same
+
+    / + phrase + <enter> to search
+    % place the cursor on a ( [ { and this will find the matching
+
+    :s substitude command on the line
+    :s/old/new
+    :s/old/new/g(global)
+    :#line#,#line#s/... set line range
+
+    :%s/... search whole file
+    :$s/old/new/g(for global) gc(for a prompt to ensure every change)
+
+    / search forward
+    ? search backward
+    both will search from the opposite side when hit
+
