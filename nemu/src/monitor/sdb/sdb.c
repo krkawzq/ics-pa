@@ -19,6 +19,9 @@
 #include <readline/history.h>
 #include "sdb.h"
 
+// 内存操作
+#include <memory/vaddr.h>
+
 
 
 static int is_batch_mode = false;
@@ -116,7 +119,9 @@ static int cmd_q(char *args) {
 static int cmd_help(char *args);
 
 static int cmd_info(char *args) {
-  if (strcmp("r", args) == 0) {
+  if (args == NULL) {
+    printf("Need args w/r, [help info] to know more\n");
+  } else if (strcmp("r", args) == 0) {
     isa_reg_display();
   } else if (strcmp("w", args) == 0) {
   } else {
@@ -139,6 +144,43 @@ static int cmd_si(char *args) {
 }
 
 static int cmd_x(char *args) {
+  if (args == NULL) {
+    printf("Need args [x n expr], [help x] to know more\n");
+    return 0;
+  }
+  
+  args = strtok(args, " "); // 获取第一个参数
+  if (args == NULL) {
+    printf("Need args [x n expr], [help x] to know more\n");
+    return 0;
+  }
+  int n = atoi(args);
+  if (n <= 0) {
+    printf("Invalid number of bytes to read\nMore infomation to [help x]\n");
+    return 0;
+  }
+
+  args = strtok(NULL, " "); // 获取第二个参数
+  if (args == NULL) {
+    printf("Need args [x n expr], [help x] to know more\n");
+    return 0;
+  }
+  
+  /*
+  DONE:
+  - 解析值，使用atoi,支持hex,oct,dec
+  TODO:
+  - 解析表达式
+  */
+  vaddr_t addr = strtol(args, NULL, 0);
+  
+  // 打印n个连续的4字节内容
+  printf("addr:0x%08x\n", addr);
+  for (int i = 0; i < n; i++) {
+    word_t value = vaddr_read(addr + i * 4, 4);
+    printf("off:%2d 0x%08x\n", addr + i * 4, value);
+  }
+  
   return 0;
 }
 
