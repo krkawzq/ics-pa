@@ -49,8 +49,8 @@ void init_wp_pool();
 - 更多待续
 */
 struct {
-  uint16_t line_read : 8;
-  uint16_t len : 8;
+  char *line_read;
+  uint16_t len;
 } rl = {NULL, 0};
 
 static void rl_gets() {
@@ -122,6 +122,22 @@ static int cmd_si(char *args) {
   return 0;
 }
 
+static int cmd_x(char *args) {
+  return 0;
+}
+
+static int cmd_p(char *args) {
+  return 0;
+}
+
+static int cmd_w(char *args) {
+  return 0;
+}
+
+static int cmd_d(char *args) {
+  return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
@@ -132,7 +148,7 @@ static struct {
   { "q",    "Exit NEMU",                                                    cmd_q     },
   { "info", "info[content]: print informations of registers, memory, etc.", cmd_info  },
   { "si",   "si[N]: single step",                                           cmd_si    },
-  { "X",    "X [addr]: scan memory, use number or expression",              cmd_X     },
+  { "x",    "x [addr]: scan memory, use number or expression",              cmd_x     },
   { "p",    "p [expr]: evaluate expression",                                cmd_p     },
   { "w",    "w [expr]: set watch point",                                    cmd_w     },
   { "d",    "d [N]: delete watch point",                                    cmd_d     }
