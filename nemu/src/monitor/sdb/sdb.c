@@ -48,19 +48,18 @@ void init_wp_pool();
 - 增加\的强制换行支持
 - 更多待续
 */
+#define LINE_BUFFER_SIZE 256
+char line_buffer[LINE_BUFFER_SIZE];
+
 struct {
   char *line_read;
   uint16_t len;
-} rl = {NULL, 0};
+} rl = {line_buffer, 0};
 
 static void rl_gets() {
   char *current_line;
   uint8_t len;
   rl.len = 0;
-  if (rl.line_read) {
-    free(rl.line_read);
-    rl.line_read = NULL;
-  } // release old memory
   
   // loop to read input until \n without \ to append new line
   while (1) {
@@ -77,6 +76,14 @@ static void rl_gets() {
     add_history(current_line);
 
     len = strlen(current_line);
+    
+    // 防止缓冲区溢出
+    if (rl.len + len >= LINE_BUFFER_SIZE) {
+      printf("Line buffer overflow\n");
+      free(current_line);
+      break;
+    }
+
     if (current_line[len - 1] == '\\') {
       // readline 得到的字符串不包含\n，检测最后一个是否是续航符
       memcpy(rl.line_read + rl.len, current_line, len - 1);
@@ -106,7 +113,7 @@ static int cmd_q(char *args) {
 static int cmd_help(char *args);
 
 static int cmd_info(char *args) {
-
+  return 0;
 }
 
 static int cmd_si(char *args) {
