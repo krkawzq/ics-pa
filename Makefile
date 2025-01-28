@@ -21,3 +21,29 @@ submit:
 	STUID=$(STUID) STUNAME=$(STUNAME) bash -c "$$(curl -s http://why.ink:8080/static/submit.sh)"
 
 .PHONY: default submit
+
+
+
+# My own
+.PHONY: push pull update
+push:
+	@if [ "$(files)" != "" ]; then \
+		echo "Pushing specific files: $(files)"; \
+		git add $(files); \
+		git commit -m "update at $$(date)"; \
+	else \
+		echo "Pushing all changes"; \
+		git commit -a -m "update at $$(date)"; \
+	fi
+	git push origin HEAD:buffer
+
+# Pull changes
+pull:
+	@echo "Fetching updates from remote..."
+	git fetch origin
+	@echo "Merging changes from buffer branch..."
+	git merge origin/buffer
+
+update:
+	make push
+	make pull
