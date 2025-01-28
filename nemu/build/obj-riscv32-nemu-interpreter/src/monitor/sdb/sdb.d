@@ -19,6 +19,7 @@ deps_/home/wzq/ics-pa/nemu/build/obj-riscv32-nemu-interpreter/src/monitor/sdb/sd
     $(wildcard include/config/target/native/elf.h) \
   /home/wzq/ics-pa/nemu/include/cpu/cpu.h \
   src/monitor/sdb/sdb.h \
+  /home/wzq/ics-pa/nemu/include/memory/vaddr.h \
 
 /home/wzq/ics-pa/nemu/build/obj-riscv32-nemu-interpreter/src/monitor/sdb/sdb.o: $(deps_/home/wzq/ics-pa/nemu/build/obj-riscv32-nemu-interpreter/src/monitor/sdb/sdb.o)
 
