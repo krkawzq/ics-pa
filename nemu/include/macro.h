@@ -19,16 +19,17 @@
 #include <string.h>
 
 // macro stringizing
+// 用于确保str前，所有宏都已经展开了
 #define str_temp(x) #x
 #define str(x) str_temp(x)
 
 // strlen() for string constant
-#define STRLEN(CONST_STR) (sizeof(CONST_STR) - 1)
+#define STRLEN(CONST_STR) (sizeof(CONST_STR) - 1)//可以用于#macro
 
 // calculate the length of an array
 #define ARRLEN(arr) (int)(sizeof(arr) / sizeof(arr[0]))
 
-// macro concatenation
+// macro concatenation 用于拼接标识符
 #define concat_temp(x, y) x ## y
 #define concat(x, y) concat_temp(x, y)
 #define concat3(x, y, z) concat(concat(x, y), z)
@@ -38,18 +39,21 @@
 // macro testing
 // See https://stackoverflow.com/questions/26099745/test-if-preprocessor-symbol-is-defined-inside-macro
 #define CHOOSE2nd(a, b, ...) b
-#define MUX_WITH_COMMA(contain_comma, a, b) CHOOSE2nd(contain_comma a, b)
-#define MUX_MACRO_PROPERTY(p, macro, a, b) MUX_WITH_COMMA(concat(p, macro), a, b)
+#define MUX_WITH_COMMA(contain_comma, a, b) CHOOSE2nd(contain_comma a, b)//这里的contain_comma是X,或者空
+#define MUX_MACRO_PROPERTY(p, macro, a, b) MUX_WITH_COMMA(concat(p, macro), a, b) //如果一个宏未定义，那么展开为空
 // define placeholders for some property
 #define __P_DEF_0  X,
 #define __P_DEF_1  X,
-#define __P_ONE_1  X,
+#define __P_ONE_1  X,//这里有逗号，作为占位符
 #define __P_ZERO_0 X,
 // define some selection functions based on the properties of BOOLEAN macro
-#define MUXDEF(macro, X, Y)  MUX_MACRO_PROPERTY(__P_DEF_, macro, X, Y)
+#define MUXDEF(macro, X, Y)  MUX_MACRO_PROPERTY(__P_DEF_, macro, X, Y)//等价于三木运算符
 #define MUXNDEF(macro, X, Y) MUX_MACRO_PROPERTY(__P_DEF_, macro, Y, X)
 #define MUXONE(macro, X, Y)  MUX_MACRO_PROPERTY(__P_ONE_, macro, X, Y)
 #define MUXZERO(macro, X, Y) MUX_MACRO_PROPERTY(__P_ZERO_,macro, X, Y)
+
+// 以上部分用来检测一个布尔宏是否定义（宏展开的值只能是0或1），遵循三木运算符规则
+
 
 // test if a boolean macro is defined
 #define ISDEF(macro) MUXDEF(macro, 1, 0)
@@ -84,7 +88,7 @@
 #define MAP(c, f) c(f)
 
 #define BITMASK(bits) ((1ull << (bits)) - 1)
-#define BITS(x, hi, lo) (((x) >> (lo)) & BITMASK((hi) - (lo) + 1)) // similar to x[hi:lo] in verilog
+#define BITS(x, hi, lo) (((x) >> (lo)) & BITMASK((hi) - (lo) + 1)) // similar to x[hi:lo] in verilog 切片
 #define SEXT(x, len) ({ struct { int64_t n : len; } __x = { .n = x }; (uint64_t)__x.n; })
 
 #define ROUNDUP(a, sz)   ((((uintptr_t)a) + (sz) - 1) & ~((sz) - 1))

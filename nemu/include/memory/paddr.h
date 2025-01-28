@@ -16,11 +16,13 @@
 #ifndef __MEMORY_PADDR_H__
 #define __MEMORY_PADDR_H__
 
+// paddr physical address
+
 #include <common.h>
 
-#define PMEM_LEFT  ((paddr_t)CONFIG_MBASE)
-#define PMEM_RIGHT ((paddr_t)CONFIG_MBASE + CONFIG_MSIZE - 1)
-#define RESET_VECTOR (PMEM_LEFT + CONFIG_PC_RESET_OFFSET)
+#define PMEM_LEFT  ((paddr_t)CONFIG_MBASE) // memory base 内存基址
+#define PMEM_RIGHT ((paddr_t)CONFIG_MBASE + CONFIG_MSIZE - 1) // memory size 内存大小
+#define RESET_VECTOR (PMEM_LEFT + CONFIG_PC_RESET_OFFSET) // reset vector 复位向量
 
 /* convert the guest physical address in the guest program to host virtual address in NEMU */
 uint8_t* guest_to_host(paddr_t paddr);
