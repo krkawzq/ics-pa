@@ -25,22 +25,72 @@ void init_regex();
 void init_wp_pool();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
-static char* rl_gets() {
-  static char *line_read = NULL;
+// static char* rl_gets() {
+//   static char *line_read = NULL;
 
-  if (line_read) {
-    free(line_read);
-    line_read = NULL;
+//   if (line_read) {
+//     free(line_read);
+//     line_read = NULL;
+//   }
+
+//   line_read = readline("(nemu) ");
+
+//   if (line_read && *line_read) {
+//     add_history(line_read);
+//   }
+
+//   return line_read;
+// }
+
+/*
+更好的版本
+增加多行指令支持
+- 增加\的强制换行支持
+- 更多待续
+*/
+struct {
+  uint16_t line_read : 8;
+  uint16_t len : 8;
+} rl = {NULL, 0};
+
+static void rl_gets() {
+  char *current_line;
+  uint8_t len;
+  rl.len = 0;
+  if (rl.line_read) {
+    free(rl.line_read);
+    rl.line_read = NULL;
+  } // release old memory
+  
+  // loop to read input until \n without \ to append new line
+  while (1) {
+    current_line = readline("(nemu) ");
+
+    if (current_line == NULL) {
+      continue;
+    }else if (*current_line == '\0') {
+      free(current_line);
+      rl.len = 0;
+      return;
+    } // 如果输入为空，则释放内存并返回, 防止越界
+
+    add_history(current_line);
+
+    len = strlen(current_line);
+    if (current_line[len - 1] == '\\') {
+      // readline 得到的字符串不包含\n，检测最后一个是否是续航符
+      memcpy(rl.line_read + rl.len, current_line, len - 1);
+      rl.len += len - 1;
+    } else {
+      memcpy(rl.line_read + rl.len, current_line, len);
+      rl.len += len;
+      free(current_line);
+      break;
+    }
+    free(current_line);
   }
-
-  line_read = readline("(nemu) ");
-
-  if (line_read && *line_read) {
-    add_history(line_read);
-  }
-
-  return line_read;
 }
+
 
 static int cmd_c(char *args) {
   cpu_exec(-1);
@@ -55,17 +105,37 @@ static int cmd_q(char *args) {
 
 static int cmd_help(char *args);
 
+static int cmd_info(char *args) {
+
+}
+
+static int cmd_si(char *args) {
+  int n = 1;
+  if (args) { // == NULL
+    n = atoi(args);
+  }
+  if (n <=0 ) {
+    printf("Invalid number of instructions to execute\nMore infomation to [help si]\n");
+    return 0; // good hit
+  }
+  cpu_exec(n);
+  return 0;
+}
+
 static struct {
   const char *name;
   const char *description;
   int (*handler) (char *);
 } cmd_table [] = {
-  { "help", "Display information about all supported commands", cmd_help },
-  { "c", "Continue the execution of the program", cmd_c },
-  { "q", "Exit NEMU", cmd_q },
-
-  /* TODO: Add more commands */
-
+  { "help", "Display information about all supported commands",             cmd_help  },
+  { "c",    "Continue the execution of the program",                        cmd_c     },
+  { "q",    "Exit NEMU",                                                    cmd_q     },
+  { "info", "info[content]: print informations of registers, memory, etc.", cmd_info  },
+  { "si",   "si[N]: single step",                                           cmd_si    },
+  { "X",    "X [addr]: scan memory, use number or expression",              cmd_X     },
+  { "p",    "p [expr]: evaluate expression",                                cmd_p     },
+  { "w",    "w [expr]: set watch point",                                    cmd_w     },
+  { "d",    "d [N]: delete watch point",                                    cmd_d     }
 };
 
 #define NR_CMD ARRLEN(cmd_table)
@@ -97,25 +167,72 @@ void sdb_set_batch_mode() {
   is_batch_mode = true;
 }
 
+// void sdb_mainloop() {
+//   if (is_batch_mode) {
+//     cmd_c(NULL);
+//     return;
+//   }
+
+//   for (char *str; (str = rl_gets()) != NULL; ) {
+//     char *str_end = str + strlen(str);
+
+//     /* extract the first token as the command */
+//     char *cmd = strtok(str, " ");
+//     if (cmd == NULL) { continue; }
+
+//     /* treat the remaining string as the arguments,
+//      * which may need further parsing
+//      */
+//     char *args = cmd + strlen(cmd) + 1;
+//     if (args >= str_end) {
+//       args = NULL;
+//     }
+
+// #ifdef CONFIG_DEVICE
+//     extern void sdl_clear_event_queue();
+//     sdl_clear_event_queue();
+// #endif
+
+//     int i;
+//     for (i = 0; i < NR_CMD; i ++) {
+//       if (strcmp(cmd, cmd_table[i].name) == 0) {
+//         if (cmd_table[i].handler(args) < 0) { return; }//如果返回值小于0， 则退出
+//         break;
+//       }
+//     }
+
+//     if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
+//   }
+// }
+
+// 通过readline解析命令，使用更好的readline版本（增加了跨行支持）
+// 解析参数后，直接将args传递给命令处理函数
+// 考虑到兼容，将第一个参数识别为命令，剩下的参数统一传递一个地址（即只strtok一次）
+/*
+更快更好的版本
+修改：
+
+*/
 void sdb_mainloop() {
   if (is_batch_mode) {
     cmd_c(NULL);
     return;
   }
 
-  for (char *str; (str = rl_gets()) != NULL; ) {
-    char *str_end = str + strlen(str);
+  // 获取命令行
+  while (1) {
+    rl_gets();
+    if (rl.len == 0) {
+      continue;
+    }
 
-    /* extract the first token as the command */
-    char *cmd = strtok(str, " ");
-    if (cmd == NULL) { continue; }
-
-    /* treat the remaining string as the arguments,
-     * which may need further parsing
-     */
-    char *args = cmd + strlen(cmd) + 1;
-    if (args >= str_end) {
-      args = NULL;
+    // 提取第一个token，此时不需要使用strtok
+    int cmd_len = 0;
+    while (rl.line_read[cmd_len] != ' ' && cmd_len < rl.len) {
+      cmd_len++;
+    }
+    if (cmd_len < rl.len) {
+      rl.line_read[cmd_len] = '\0';
     }
 
 #ifdef CONFIG_DEVICE
@@ -123,15 +240,17 @@ void sdb_mainloop() {
     sdl_clear_event_queue();
 #endif
 
+    // 解析命令
     int i;
-    for (i = 0; i < NR_CMD; i ++) {
-      if (strcmp(cmd, cmd_table[i].name) == 0) {
-        if (cmd_table[i].handler(args) < 0) { return; }
+    for (i = 0; i < NR_CMD; i++) {
+      if (strcmp(rl.line_read, cmd_table[i].name) == 0) {
+        if (cmd_table[i].handler(
+          cmd_len < rl.len ? rl.line_read + cmd_len + 1 : NULL) < 0
+        ) { return; }
         break;
       }
     }
-
-    if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
+    if (i == NR_CMD) { printf("Unknown command '%s'\n", rl.line_read); }
   }
 }
 
