@@ -24,11 +24,12 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
+  printf("Register states:\n");
   for (int i = 0; i < 32; i += 4) {
     printf(
-      "REGISTERS:\n%12s%12s%12s%12s\n%12x%12x%12x%12x\n\n",
-      reg_name(i), reg_name(i + 1), reg_name(i + 2), reg_name(i + 3),
-      gpr(i), gpr(i + 1), gpr(i + 2), gpr(i + 3)
+      "%4s%x %4s%x %4s%x %4s%x\n",
+      reg_name(i), gpr(i), reg_name(i + 1), gpr(i + 1),
+      reg_name(i + 2), gpr(i + 2), reg_name(i + 3), gpr(i + 3)
     );
   }
 }
