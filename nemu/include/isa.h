@@ -30,7 +30,7 @@ void init_isa();
 
 // reg
 extern CPU_state cpu;
-void isa_reg_display();
+void isa_reg_display();// 为什么莫名其妙接口在这里，这个reg.c分离的莫名其妙的
 word_t isa_reg_str2val(const char *name, bool *success);
 
 // exec

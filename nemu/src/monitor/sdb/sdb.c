@@ -13,11 +13,13 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
-#include <isa.h>
+#include <isa.h>// 包含了reg,mem等
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+
+
 
 static int is_batch_mode = false;
 
@@ -114,6 +116,12 @@ static int cmd_q(char *args) {
 static int cmd_help(char *args);
 
 static int cmd_info(char *args) {
+  if (strcmp("r", args) == 0) {
+    isa_reg_display();
+  } else if (strcmp("w", args) == 0) {
+  } else {
+    printf("Unknown usage, [help info] to know more\n");
+  }
   return 0;
 }
 
@@ -154,7 +162,7 @@ static struct {
   { "help", "Display information about all supported commands",             cmd_help  },
   { "c",    "Continue the execution of the program",                        cmd_c     },
   { "q",    "Exit NEMU",                                                    cmd_q     },
-  { "info", "info[content]: print informations of registers, memory, etc.", cmd_info  },
+  { "info", "info[r/w]: print informations of registers or watch point", cmd_info  },
   { "si",   "si[N]: single step",                                           cmd_si    },
   { "x",    "x [addr]: scan memory, use number or expression",              cmd_x     },
   { "p",    "p [expr]: evaluate expression",                                cmd_p     },
