@@ -78,7 +78,7 @@ static void rl_gets() {
     len = strlen(current_line);
     
     // 防止缓冲区溢出
-    if (rl.len + len >= LINE_BUFFER_SIZE) {
+    if (rl.len + len >= LINE_BUFFER_SIZE - 1) {
       printf("Line buffer overflow\n");
       free(current_line);
       break;
@@ -96,6 +96,7 @@ static void rl_gets() {
     }
     free(current_line);
   }
+  rl.line_read[rl.len] = '\0';
 }
 
 
