@@ -174,11 +174,16 @@ static int cmd_x(char *args) {
   */
   vaddr_t addr = strtol(args, NULL, 0);
   
-  // 打印n个连续的4字节内容
   printf("addr:0x%08x\n", addr);
   for (int i = 0; i < n; i++) {
     word_t value = vaddr_read(addr + i * 4, 4);
-    printf("off:%2d 0x%08x\n", addr + i * 4, value);
+    printf(
+      "%02x %02x %02x %02x\n", 
+      (value >> 24) & 0xff,
+      (value >> 16) & 0xff,
+      (value >> 8) & 0xff,
+      value & 0xff
+    );
   }
   
   return 0;
