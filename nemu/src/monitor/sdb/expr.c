@@ -214,23 +214,6 @@ static bool make_token(char *e) {
   return true;
 }
 
-// 使用内联函数检测运算过程
-// 使用静态errbuf
-static struct {
-  bool statu;
-  char *str;
-} ret_state = { true, NULL };
-char errinfo_div_by_zero[] = "divide by zero";
-static inline uint32_t add(uint32_t a, uint32_t b) { return a + b; }
-static inline uint32_t minus(uint32_t a, uint32_t b) { return a - b; }
-static inline uint32_t divide(uint32_t a, uint32_t b) {
-  ret_state.statu = false;
-  ret_state.str = errinfo_div_by_zero;
-  return a / b; 
-}
-static inline uint32_t mul(uint32_t a, uint32_t b) { return a * b; }
-static inline 
-
 /*
 <expr> ::= <decimal-number>
   | <hexadecimal-number>    # 以"0x"开头
@@ -268,7 +251,7 @@ enum level {
   LVL_PAREN = 10       // ()
 };
 
-static int get_priority(int op_type) {
+static inline int get_priority(int op_type) {
   switch (op_type) {
     case TK_OR: return LVL_L_OR;
     case TK_AND: return LVL_L_AND;
@@ -368,7 +351,6 @@ static int find_main_op(int left, int right) {
         op = i;
       }
     }
-    prev_token = tokens[i].type;  // 更新前一个token（包括非运算符）
   }
   return op;
 }
