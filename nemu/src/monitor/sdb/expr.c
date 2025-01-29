@@ -81,13 +81,13 @@ static struct rule {
   {">=",  TK_GE},        // greater equal
   {"<=",  TK_LE},        // less equal
   {"&",   TK_BIT_AND},   // bitwise and
-  {"|",   TK_BIT_OR},    // bitwise or
+  {"\\|",   TK_BIT_OR},    // bitwise or
   {"~",   TK_BIT_NOT},   // bitwise not
   {"==",  TK_EQ},        // equal
-  {"!=",  TK_UE},
-  {"&&",  TK_AND},
-  {"||",  TK_OR},
-  {"\\*", TK_DOT},       // dot
+  {"!=",  TK_UE},        // unequal
+  {"&&",  TK_AND},       // logical and
+  {"\\|\\|",  TK_OR},    // logical or
+  {"\\*", TK_DOT},       // multiply or dereference
   {"/",   TK_DIV},       // divide
   {"\\(", TK_LBRACKET},  // left bracket
   {"\\)", TK_RBRACKET},  // right bracket
