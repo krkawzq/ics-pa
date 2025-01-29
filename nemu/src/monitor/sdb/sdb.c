@@ -199,6 +199,14 @@ static int cmd_x(char *args) {
 }
 
 static int cmd_p(char *args) {
+  uint32_t answer;
+  bool success;
+  answer = expr(args, success);
+  if (!success) {
+    printf("wrong expr\n");
+  } else {
+    printf("%u\n", answer);
+  }
   return 0;
 }
 
