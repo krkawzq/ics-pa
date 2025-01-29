@@ -333,22 +333,36 @@ static int find_main_op(int left, int right) {
   int min_prior = 100;
   int in_paren = 0;
 
-  for (int i = left; i <= right; i++) {
-    if (tokens[i].type == TK_LBRACKET) {
+  // 从右向左扫描，这样可以正确处理同优先级的左结合
+  for (int i = right; i >= left; i--) {
+    if (tokens[i].type == TK_RBRACKET) {
       in_paren++;
       continue;
     }
-    if (tokens[i].type == TK_RBRACKET) {
+    if (tokens[i].type == TK_LBRACKET) {
       in_paren--;
       continue;
     }
     if (in_paren > 0) continue;
 
+    // 获取当前token的优先级
     int curr_prior = get_priority(tokens[i].type);
     if (curr_prior > 0) {  // 是运算符
-      if (curr_prior <= min_prior) {
-        min_prior = curr_prior;
-        op = i;
+      // 对于相同优先级，我们选择最左边的运算符（右结合）
+      // 对于一元运算符，我们需要特殊处理
+      if (curr_prior == LVL_UNARY) {
+        if (i == left || (tokens[i-1].type > TK_OPERATOR_START && 
+                         tokens[i-1].type < TK_OPERATOR_END)) {
+          if (curr_prior < min_prior) {
+            min_prior = curr_prior;
+            op = i;
+          }
+        }
+      } else {
+        if (curr_prior < min_prior) {
+          min_prior = curr_prior;
+          op = i;
+        }
       }
     }
   }
@@ -357,34 +371,59 @@ static int find_main_op(int left, int right) {
 
 // 左闭右闭
 static word_t cal(short left, short right, bool *success) {
+  if (!*success) return 0;  // 如果已经失败，直接返回
+  
   if (left > right) {
     printf("Error: Invalid expression range\n");
     *success = false;
     return 0;
   }
 
+  // 处理单个token的情况
   if (left == right) {
-    // 单个token的情况
     switch (tokens[left].type) {
-      case TK_NUM: return strtoul(tokens[left].str, NULL, 10);
-      case TK_HEX: return strtoul(tokens[left].str, NULL, 16);
-      case TK_OCT: return strtoul(tokens[left].str, NULL, 8);
-      case TK_REG: {
-        bool reg_success = true;
-        word_t val = isa_reg_str2val(tokens[left].str, &reg_success);
-        if (!reg_success) {
-          printf("Error: Invalid register name\n");
+      case TK_NUM: {
+        char *endptr;
+        word_t val = strtoul(tokens[left].str, &endptr, 10);
+        if (*endptr != '\0') {
+          printf("Error: Invalid decimal number format: %s\n", tokens[left].str);
           *success = false;
           return 0;
         }
         return val;
       }
-      case TK_IDENT: // 处理变量名
-        // TODO: 实现变量查找
-        *success = false;
-        return 0;
+      case TK_HEX: {
+        char *endptr;
+        word_t val = strtoul(tokens[left].str, &endptr, 16);
+        if (*endptr != '\0') {
+          printf("Error: Invalid hex number format: %s\n", tokens[left].str);
+          *success = false;
+          return 0;
+        }
+        return val;
+      }
+      case TK_OCT: {
+        char *endptr;
+        word_t val = strtoul(tokens[left].str, &endptr, 8);
+        if (*endptr != '\0') {
+          printf("Error: Invalid octal number format: %s\n", tokens[left].str);
+          *success = false;
+          return 0;
+        }
+        return val;
+      }
+      case TK_REG: {
+        bool reg_success = true;
+        word_t val = isa_reg_str2val(tokens[left].str, &reg_success);
+        if (!reg_success) {
+          printf("Error: Invalid register name: %s\n", tokens[left].str);
+          *success = false;
+          return 0;
+        }
+        return val;
+      }
       default:
-        printf("Error: Invalid token type\n");
+        printf("Error: Invalid token type at position %d\n", left);
         *success = false;
         return 0;
     }
@@ -398,7 +437,7 @@ static word_t cal(short left, short right, bool *success) {
   // 寻找主运算符
   int op = find_main_op(left, right);
   if (op < 0) {
-    printf("Error: Cannot find main operator\n");
+    printf("Error: Cannot find main operator between positions %d and %d\n", left, right);
     *success = false;
     return 0;
   }
@@ -411,10 +450,16 @@ static word_t cal(short left, short right, bool *success) {
     switch (tokens[op].type) {
       case TK_BIT_NOT: return ~val;
       case TK_DEREF: {
+        // 添加地址检查
+        if (val % 4 != 0) {
+          printf("Error: Misaligned memory access at address 0x%x\n", val);
+          *success = false;
+          return 0;
+        }
         return vaddr_read(val, 4);
       }
       default:
-        printf("Error: Invalid unary operator\n");
+        printf("Error: Unknown unary operator at position %d\n", op);
         *success = false;
         return 0;
     }
@@ -433,7 +478,7 @@ static word_t cal(short left, short right, bool *success) {
     case TK_DOT: return val1 * val2;
     case TK_DIV:
       if (val2 == 0) {
-        printf("Error: Division by zero\n");
+        printf("Error: Division by zero at position %d\n", op);
         *success = false;
         return 0;
       }
@@ -449,7 +494,7 @@ static word_t cal(short left, short right, bool *success) {
     case TK_BIT_AND: return val1 & val2;
     case TK_BIT_OR: return val1 | val2;
     default:
-      printf("Error: Invalid binary operator\n");
+      printf("Error: Unknown binary operator at position %d\n", op);
       *success = false;
       return 0;
   }
