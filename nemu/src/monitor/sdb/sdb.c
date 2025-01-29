@@ -205,7 +205,10 @@ static int cmd_p(char *args) {
   if (!success) {
     printf("wrong expr\n");
   } else {
-    printf("%u\n", answer);
+    printf("%02x ", answer >> 24);
+    printf("%02x ", (answer >> 16) & 0xff);
+    printf("%02x ", (answer >> 8) & 0xff);
+    printf("%02x\n", answer & 0xff);
   }
   return 0;
 }
