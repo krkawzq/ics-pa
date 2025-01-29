@@ -201,6 +201,10 @@ static int cmd_x(char *args) {
 static int cmd_p(char *args) {
   uint32_t answer;
   bool success;
+  if (args == NULL) {
+    printf("empty expr\n");
+    return 0;                 
+  }
   answer = expr(args, &success);
   if (!success) {
     printf("wrong expr\n");
@@ -327,10 +331,13 @@ void sdb_mainloop() {
     }
     
     cmd = strtok(rl.line_read, " ");
+    int len = strlen(cmd);
     if (cmd == NULL) { continue; } // empty line
-    args = strtok(NULL, " ");
-
-
+    if (len >= rl.len - 1) {
+      args = NULL;
+    } else {
+      args = cmd + len + 1; 
+    }
 
 #ifdef CONFIG_DEVICE
     extern void sdl_clear_event_queue();
