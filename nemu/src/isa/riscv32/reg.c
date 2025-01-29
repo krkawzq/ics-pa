@@ -26,7 +26,7 @@ const char *regs[] = {
 void isa_reg_display() {
   for (int i = 0; i < 32; i += 4) {
     printf(
-      "%-3s:  0x%08x %-4s:  0x%08x %-4s:  0x%08x %-4s:  0x%08x\n",
+      "%-3s:  0x%08x %-3s:  0x%08x %-3s:  0x%08x %-3s:  0x%08x\n",
       reg_name(i), gpr(i), reg_name(i + 1), gpr(i + 1),
       reg_name(i + 2), gpr(i + 2), reg_name(i + 3), gpr(i + 3)
     );
@@ -34,7 +34,7 @@ void isa_reg_display() {
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
-  // 遍历regs数组查找匹配的寄存器名
+  // 遍历regs
   for (int i = 0; i < 32; i++) {
     if (strcmp(regs[i], s) == 0) {
       *success = true;
