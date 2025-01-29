@@ -65,34 +65,34 @@ enum {
 static struct rule {
   const char *regex;
   int token_type;
-} rules[] = { // 从上至下，确保优先级
-  {" +",  TK_NOTYPE},    // spaces
-  // number
-  {"0x[0-9abcdefABCDEF]+", TK_HEX}, // HEX
-  {"0[01234567]+", TK_OCT}, //OCT
-  {"\\+ *\\[-\\+]?[0-9]+", TK_PLUS},    // plus followed a signed number
-  {"- *[-\\+]?[0-9]+", TK_MINUS},        // minus followed a signed number
-  {"[+-]?[0-9]+", TK_NUM},     // number
-  {"\\+", TK_PLUS},      // plus
-  {"-",   TK_MINUS},     // minus
+} rules[] = {
+    {" +", TK_NOTYPE},    // spaces
+    {"==", TK_EQ},        // equal
+    {"!=", TK_UE},        // unequal
+    {">=", TK_GE},        // greater equal
+    {"<=", TK_LE},        // less equal
+    {"&&", TK_AND},       // logical and
+    {"\\|\\|", TK_OR},    // logical or
+    // number
+    {"0x[0-9abcdefABCDEF]+", TK_HEX}, // HEX
+    {"0[01234567]+", TK_OCT}, //OCT
+    {"\\+ *\\[-\\+]?[0-9]+", TK_PLUS},    // plus followed a signed number
+    {"- *[-\\+]?[0-9]+", TK_MINUS},        // minus followed a signed number
+    {"[+-]?[0-9]+", TK_NUM},     // number
+    {"\\+", TK_PLUS},      // plus
+    {"-",   TK_MINUS},     // minus
 
-  {">",   TK_GT},        // greater than
-  {"<",   TK_LT},        // less than
-  {">=",  TK_GE},        // greater equal
-  {"<=",  TK_LE},        // less equal
-  {"&",   TK_BIT_AND},   // bitwise and
-  {"\\|",   TK_BIT_OR},    // bitwise or
-  {"~",   TK_BIT_NOT},   // bitwise not
-  {"==",  TK_EQ},        // equal
-  {"!=",  TK_UE},        // unequal
-  {"&&",  TK_AND},       // logical and
-  {"\\|\\|",  TK_OR},    // logical or
-  {"\\*", TK_DOT},       // multiply or dereference
-  {"/",   TK_DIV},       // divide
-  {"\\(", TK_LBRACKET},  // left bracket
-  {"\\)", TK_RBRACKET},  // right bracket
-  {"\\$(0|ra|sp|gp|tp|t[0-6]|s([0-9]|10|11)|a[0-7])", TK_REG},  // register
-  {"[a-zA-Z_][a-zA-Z0-9_]*", TK_IDENT} // identifier
+    {">",   TK_GT},        // greater than
+    {"<",   TK_LT},        // less than
+    {"&",   TK_BIT_AND},   // bitwise and
+    {"\\|",   TK_BIT_OR},    // bitwise or
+    {"~",   TK_BIT_NOT},   // bitwise not
+    {"\\*", TK_DOT},       // multiply or dereference
+    {"/",   TK_DIV},       // divide
+    {"\\(", TK_LBRACKET},  // left bracket
+    {"\\)", TK_RBRACKET},  // right bracket
+    {"\\$(0|ra|sp|gp|tp|t[0-6]|s([0-9]|10|11)|a[0-7])", TK_REG},  // register
+    {"[a-zA-Z_][a-zA-Z0-9_]*", TK_IDENT} // identifier
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -133,145 +133,88 @@ static bool make_token(char *e) {
 
   while (e[position] != '\0') {
     /* Try all rules one by one. */
-    for (i = 0; i < NR_REGEX; i ++) {
-      if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
-        char *substr_start = e + position;
-        int substr_len = pmatch.rm_eo;
+    for (i = 0; i < NR_REGEX; i ++) { // 尝试匹配所有正则
+      if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) { // 从position开始匹配，匹配一个，匹配成功返回一个regmatch_t,包含offsets
+        char *substr_start = e + position; // 子串起始位置
+        int substr_len = pmatch.rm_eo; // 子串长度
 
         Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
+        // rules[i].token_type
+        position += substr_len; // 调整position
 
-        // 检查token数组是否溢出
-        if (nr_token >= 32) {
-          printf("Error: Too many tokens\n");
+        /* TODO: Now a new token is recognized with rules[i]. Add codes
+         * to record the token in the array `tokens'. For certain types
+         * of tokens, some extra actions should be performed.
+         */
+        if (rules[i].token_type == TK_NOTYPE) { 
+            printf("empty expr\n"); 
           return false;
         }
+        if (substr_len >= 31) { printf("no long token len\n"); return false;}
 
-        // 检查token长度
-        if (substr_len >= 32) {
-          printf("Error: Token too long\n");
-          return false;
-        }
 
-        // 根据不同的token类型进行处理
         switch (rules[i].token_type) {
-          case TK_NOTYPE:
+          case TK_NOTYPE:  // 对于空格，直接跳过，不要返回false
             break;
 
-          case TK_NUM:
-          case TK_HEX:
-          case TK_OCT: {
-            // 数字处理需要特别注意前缀
-            if (rules[i].token_type == TK_HEX && substr_len > 2) {
-              // 去掉0x前缀
-              memcpy(tokens[nr_token].str, substr_start + 2, substr_len - 2);
-              tokens[nr_token].str[substr_len - 2] = '\0';
-            } else if (rules[i].token_type == TK_OCT && substr_len > 1) {
-              // 去掉0前缀
-              memcpy(tokens[nr_token].str, substr_start + 1, substr_len - 1);
-              tokens[nr_token].str[substr_len - 1] = '\0';
-            } else {
-              memcpy(tokens[nr_token].str, substr_start, substr_len);
-              tokens[nr_token].str[substr_len] = '\0';
-            }
-            tokens[nr_token].type = rules[i].token_type;
-            nr_token++;
-            break;
-          }
-
-          case TK_REG: {
-            // 寄存器名处理，去掉$前缀
-            if (substr_len > 1) {
-              memcpy(tokens[nr_token].str, substr_start + 1, substr_len - 1);
-              tokens[nr_token].str[substr_len - 1] = '\0';
-            } else {
-              printf("Error: Invalid register name\n");
-              return false;
-            }
-            tokens[nr_token].type = TK_REG;
-            nr_token++;
-            break;
-          }
-
+          // 所有运算符的处理
           case TK_PLUS:
-          case TK_MINUS: {
-            // 检查是否是一元运算符
-            if (nr_token == 0 || 
-                (tokens[nr_token-1].type > TK_OPERATOR_START && 
-                 tokens[nr_token-1].type < TK_OPERATOR_END)) {
-              // 如果是表达式开始或前一个token是运算符，则当前的+/-是一元运算符
-              // 将其与下一个数字合并
-              char next_char = e[position + 1];
-              if (next_char == ' ') {
-                // 跳过空格
-                int j = position + 1;
-                while (e[j] == ' ') j++;
-                next_char = e[j];
-              }
-              if (isdigit(next_char)) {
-                // 如果下一个字符是数字，暂存当前符号
-                tokens[nr_token].str[0] = substr_start[0];
-                tokens[nr_token].str[1] = '\0';
-                tokens[nr_token].type = rules[i].token_type;
-                nr_token++;
-              }
-            } else {
-              // 作为二元运算符处理
-              tokens[nr_token].type = rules[i].token_type;
-              tokens[nr_token].str[0] = '\0';
-              nr_token++;
-            }
-            break;
-          }
-
-          case TK_DOT: {
-            // 检查是否是解引用运算符
-            if (nr_token == 0 || 
-                (tokens[nr_token-1].type > TK_OPERATOR_START && 
-                 tokens[nr_token-1].type < TK_OPERATOR_END)) {
-              tokens[nr_token].type = TK_DEREF;
-            } else {
-              tokens[nr_token].type = TK_DOT;  // 作为乘法运算符
-            }
-            tokens[nr_token].str[0] = '\0';
-            nr_token++;
-            break;
-          }
-
-          case TK_AND:
-          case TK_OR:
-          case TK_EQ:
-          case TK_UE:
+          case TK_EQ: 
+          case TK_MINUS:
+          case TK_DOT:
+          case TK_DIV:
+          case TK_LBRACKET: 
+          case TK_RBRACKET: 
           case TK_GT:
           case TK_LT:
           case TK_GE:
           case TK_LE:
           case TK_BIT_AND:
-          case TK_BIT_OR:
           case TK_BIT_NOT:
-          case TK_DIV:
-          case TK_LBRACKET:
-          case TK_RBRACKET: {
+          case TK_BIT_OR:
+          case TK_AND:      // 添加逻辑与
+          case TK_OR:       // 添加逻辑或
+          case TK_UE:       // 添加不等于
             tokens[nr_token].type = rules[i].token_type;
             tokens[nr_token].str[0] = '\0';
             nr_token++;
             break;
-          }
 
-          default:
+          case TK_REG:
+            memcpy(tokens[nr_token].str, substr_start + 1, substr_len - 1);
+            tokens[nr_token].str[substr_len - 1] = '\0';  // 修正结束位置
+            tokens[nr_token].type = rules[i].token_type;
+            nr_token++;
+            break;
+
+          case TK_IDENT: 
+          case TK_NUM:
+          case TK_HEX:
+          case TK_OCT:
+            memcpy(tokens[nr_token].str, substr_start, substr_len);
+            tokens[nr_token].str[substr_len] = '\0';
+            tokens[nr_token].type = rules[i].token_type;
+            nr_token++;
+            break;
+
+          default: 
             printf("Error: Unknown token type\n");
             return false;
         }
 
-        position += substr_len;
-        break;
+        break; // 找到一次即结束
       }
     }
 
     if (i == NR_REGEX) {
-      printf("Error: No match at position %d\n%s\n%*.s^\n", position, e, position, "");
+      printf("no match at position %d\n%s\n%*.s^\n", position, e, position, "");
       return false;
     }
+  }
+  if (nr_token == 0) {
+      printf("empty expr\n");
+    return false;
   }
 
   return true;
