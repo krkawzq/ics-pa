@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <isa.h>
+// 需要添加的头文件
 #include <memory/vaddr.h>
 
 /* We use the POSIX regex functions to process regular expressions.
@@ -69,8 +70,8 @@ static struct rule {
   // number
   {"0x[0-9abcdefABCDEF]+", TK_HEX}, // HEX
   {"0[01234567]+", TK_OCT}, //OCT
-  {"\\+ *\\[-\\+]?[0-9]+", TK_PLUS}    // plus followed a signed number
-  {"- *[-\\+]?[0-9]+", TK_MINUS}        // minus followed a signed number
+  {"\\+ *\\[-\\+]?[0-9]+", TK_PLUS},    // plus followed a signed number
+  {"- *[-\\+]?[0-9]+", TK_MINUS},        // minus followed a signed number
   {"[+-]?[0-9]+", TK_NUM},     // number
   {"\\+", TK_PLUS},      // plus
   {"-",   TK_MINUS},     // minus
@@ -348,7 +349,6 @@ static int find_main_op(int left, int right) {
   int op = -1;
   int min_prior = 100;
   int in_paren = 0;
-  int prev_token = (left > 0) ? tokens[left-1].type : -1;  // 获取左边界前一个token
 
   for (int i = left; i <= right; i++) {
     if (tokens[i].type == TK_LBRACKET) {
@@ -429,11 +429,6 @@ static word_t cal(short left, short right, bool *success) {
     switch (tokens[op].type) {
       case TK_BIT_NOT: return ~val;
       case TK_DEREF: {
-        if (!in_pmem(val)) {  // 检查内存访问是否有效
-          printf("Error: Invalid memory access at address 0x%x\n", val);
-          *success = false;
-          return 0;
-        }
         return vaddr_read(val, 4);
       }
       default:
