@@ -76,9 +76,7 @@ static struct rule {
     // number
     {"0x[0-9abcdefABCDEF]+", TK_HEX}, // HEX
     {"0[01234567]+", TK_OCT}, //OCT
-    {"\\+ *\\[-\\+]?[0-9]+", TK_PLUS},    // plus followed a signed number
-    {"- *[-\\+]?[0-9]+", TK_MINUS},        // minus followed a signed number
-    {"[+-]?[0-9]+", TK_NUM},     // number
+    {"[0-9]+", TK_NUM},     // number
     {"\\+", TK_PLUS},      // plus
     {"-",   TK_MINUS},     // minus
 
@@ -148,10 +146,9 @@ static bool make_token(char *e) {
          * of tokens, some extra actions should be performed.
          */
         if (rules[i].token_type == TK_NOTYPE) { 
-            printf("empty expr\n"); 
-          return false;
+          continue;
         }
-        if (substr_len >= 31) { printf("no long token len\n"); return false;}
+        if (substr_len >= 31) { printf("too long token len\n"); return false;}
 
 
         switch (rules[i].token_type) {
@@ -187,9 +184,57 @@ static bool make_token(char *e) {
             tokens[nr_token].type = rules[i].token_type;
             nr_token++;
             break;
+          
+          case TK_NUM:
+            if (nr_token == 0) {
+                // 第一个数字，直接添加
+                memcpy(tokens[nr_token].str, substr_start, substr_len);
+                tokens[nr_token].str[substr_len] = '\0';
+                tokens[nr_token].type = rules[i].token_type;
+                nr_token++;
+            } 
+            else if (nr_token == 1 && (tokens[0].type == TK_PLUS || tokens[0].type == TK_MINUS)) {
+                // 第二个token，且前面是符号，则符号和数字合并
+                if (tokens[0].type == TK_PLUS) {
+                    // 正号，直接用数字替换
+                    memcpy(tokens[0].str, substr_start, substr_len);
+                    tokens[0].str[substr_len] = '\0';
+                    tokens[0].type = rules[i].token_type;
+                } else { // TK_MINUS
+                    // 负号，加上负号
+                    tokens[0].str[0] = '-';
+                    memcpy(tokens[0].str + 1, substr_start, substr_len);
+                    tokens[0].str[substr_len + 1] = '\0';
+                    tokens[0].type = rules[i].token_type;
+                }
+            }
+            else if (nr_token >= 2 && 
+                    (tokens[nr_token - 1].type == TK_PLUS || tokens[nr_token - 1].type == TK_MINUS) && 
+                    (tokens[nr_token - 2].type == TK_PLUS || tokens[nr_token - 2].type == TK_MINUS)) {
+                if (tokens[nr_token - 1].type == TK_PLUS) {
+                    // 正号，用数字替换最后一个符号
+                    memcpy(tokens[nr_token - 1].str, substr_start, substr_len);
+                    tokens[nr_token - 1].str[substr_len] = '\0';
+                    tokens[nr_token - 1].type = rules[i].token_type;
+                } else { // TK_MINUS
+                    // 负号，在最后一个符号位置加上负号
+                    tokens[nr_token - 1].str[0] = '-';
+                    memcpy(tokens[nr_token - 1].str + 1, substr_start, substr_len);
+                    tokens[nr_token - 1].str[substr_len + 1] = '\0';
+                    tokens[nr_token - 1].type = rules[i].token_type;
+                }
+            }
+            else {
+                // 其他所有情况：作为新token添加
+                memcpy(tokens[nr_token].str, substr_start, substr_len);
+                tokens[nr_token].str[substr_len] = '\0';
+                tokens[nr_token].type = rules[i].token_type;
+                nr_token++;
+            }
+            break;
+                               
 
           case TK_IDENT: 
-          case TK_NUM:
           case TK_HEX:
           case TK_OCT:
             memcpy(tokens[nr_token].str, substr_start, substr_len);
