@@ -24,7 +24,6 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
-  printf("Register states:\n");
   for (int i = 0; i < 32; i += 4) {
     printf(
       "%-4s: 0x%08x %-4s: 0x%08x %-4s: 0x%08x %-4s: 0x%08x\n",

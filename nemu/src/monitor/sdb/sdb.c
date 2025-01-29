@@ -54,22 +54,29 @@ void init_wp_pool();
 - 更多待续
 */
 #define LINE_BUFFER_SIZE 256
-char line_buffer[LINE_BUFFER_SIZE];
+static char line_buffer[LINE_BUFFER_SIZE];
 
-struct {
+static struct {
   char *line_read;
   uint16_t len;
 } rl = {line_buffer, 0};
 
+/*
+DONE
+- \续行符
+TODO
+- ""续行
+- 特殊语法下的续行
+*/
 static void rl_gets() {
   char *current_line;
   uint8_t len;
   rl.len = 0;
+
+  current_line = readline("(nemu) ");
   
   // loop to read input until \n without \ to append new line
   while (1) {
-    current_line = readline("(nemu) ");
-
     if (current_line == NULL) {
       continue;
     }else if (*current_line == '\0') {
@@ -100,6 +107,8 @@ static void rl_gets() {
       break;
     }
     free(current_line);
+
+    current_line = readline("> ");
   }
   rl.line_read[rl.len] = '\0';
 }
@@ -209,7 +218,7 @@ static struct {
   { "help", "Display information about all supported commands",             cmd_help  },
   { "c",    "Continue the execution of the program",                        cmd_c     },
   { "q",    "Exit NEMU",                                                    cmd_q     },
-  { "info", "info[r/w]: print informations of registers or watch point", cmd_info  },
+  { "info", "info[r/w]: print informations of registers or watch point",    cmd_info  },
   { "si",   "si[N]: single step",                                           cmd_si    },
   { "x",    "x [addr]: scan memory, use number or expression",              cmd_x     },
   { "p",    "p [expr]: evaluate expression",                                cmd_p     },
@@ -297,22 +306,20 @@ void sdb_mainloop() {
     cmd_c(NULL);
     return;
   }
+  char *cmd, *args;
 
   // 获取命令行
   while (1) {
-    rl_gets();
+    rl_gets(); // 通过读取静态rl
     if (rl.len == 0) {
       continue;
     }
+    
+    cmd = strtok(rl.line_read, " ");
+    if (cmd == NULL) { continue; } // empty line
+    args = strtok(NULL, " ");
 
-    // 提取第一个token，此时不需要使用strtok
-    int cmd_len = 0;
-    while (rl.line_read[cmd_len] != ' ' && cmd_len < rl.len) {
-      cmd_len++;
-    }
-    if (cmd_len < rl.len) {
-      rl.line_read[cmd_len] = '\0';
-    }
+
 
 #ifdef CONFIG_DEVICE
     extern void sdl_clear_event_queue();
@@ -322,10 +329,8 @@ void sdb_mainloop() {
     // 解析命令
     int i;
     for (i = 0; i < NR_CMD; i++) {
-      if (strcmp(rl.line_read, cmd_table[i].name) == 0) {
-        if (cmd_table[i].handler(
-          cmd_len < rl.len ? rl.line_read + cmd_len + 1 : NULL) < 0
-        ) { return; }
+      if (strcmp(cmd, cmd_table[i].name) == 0) {
+        if (cmd_table[i].handler(args) < 0) { return; }
         break;
       }
     }
