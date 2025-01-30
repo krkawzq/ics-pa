@@ -230,11 +230,10 @@ static int cmd_w(char *args) {
     printf("invalid expr\n");
     return 0;
   }
-  WP *wp = new_wp();
-  wp->NO = wp_used_count + 1;
+  WP *wp = new_wp(); // 0 -> 1
+  wp->NO = wp_used_count;
   wp->value = value;
   strcpy(wp->expr, args);
-  wp_used_count++;
   return 0;
 }
 
