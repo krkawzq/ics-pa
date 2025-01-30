@@ -84,7 +84,7 @@ static struct rule {
   const char *regex;
   int token_type;
 } rules[] = {
-    {"\s+",                 TK_SPACE        },
+    {"\\s+",                 TK_SPACE        },
     {"\\$(0|ra|sp|gp|tp|t[0-6]|s([0-9]|10|11)|a[0-7])", TK_REG},
     {"==",                  TK_LOGIC_EQ     },
     {"!=",                  TK_LOGIC_NEQ    },
@@ -189,7 +189,6 @@ static bool make_token(char *e) {
         
         case TK_REG:
         case TK_NUM_HEX:
-        case TK_IDENT:
           tokens[nr_token].type = rules[i].token_type;
           strncpy(tokens[nr_token].str, substr_start, substr_len);
           nr_token++;
