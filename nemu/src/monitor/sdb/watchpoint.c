@@ -99,8 +99,10 @@ bool check_watchpoint() {
   WP *wp = head;
   word_t value;
   bool changed = false;
+  bool success = true;
   while (wp != NULL) {
-    value = expr(wp->expr, NULL);
+    value = expr(wp->expr, &success);
+    if (!success) Assert(false, "unknown error in check_watchpoint");
     if (wp->value != value) {
       printf("watchpoint %d: %s\n", wp->NO, wp->expr);
       printf("old value: %d\n", wp->value);
