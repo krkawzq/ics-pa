@@ -299,7 +299,10 @@ static word_t eval(int left, int right, bool *success) {
       case TK_NUM_DEC: return strtol(tokens[left].str, NULL, 10);
       case TK_NUM_HEX: return strtol(tokens[left].str, NULL, 16);
       case TK_REG: return isa_reg_str2val(tokens[left].str + 1, success); // 去掉$
-      case TK_IDENT: Assert(false, "not implemented");
+      case TK_IDENT: 
+        printf("not implemented\n");
+        *success = false;
+        return 0;
       default: Assert(false, "invalid token type");
     }
   }
