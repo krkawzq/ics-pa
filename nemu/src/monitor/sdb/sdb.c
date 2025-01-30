@@ -197,7 +197,7 @@ static int cmd_x(char *args) {
       (value >> 16) & 0xff,
       (value >> 8) & 0xff,
       value & 0xff
-    );
+    );f
   }
   
   return 0;
