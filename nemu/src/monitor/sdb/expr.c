@@ -300,7 +300,7 @@ static word_t eval(int left, int right, bool *success) {
     switch (tokens[left].type) {
       case TK_NUM_DEC: return strtol(tokens[left].str, NULL, 10);
       case TK_NUM_HEX: return strtol(tokens[left].str, NULL, 16);
-      case TK_REG: return isa_reg_str2val(tokens[left].str);
+      case TK_REG: return isa_reg_str2val(tokens[left].str, success);
       case TK_IDENT: Assert(false, "not implemented");
       default: Assert(false, "invalid token type");
     }
@@ -360,7 +360,7 @@ static word_t eval(int left, int right, bool *success) {
         *success = false;
         return 0;
         }
-        return *(word_t*)vaddr_read(val, 4);
+        return vaddr_read(val, 4);
       case TK_BIT_NOT: return ~val;
       case TK_LOGIC_NOT: return !val;
     }
@@ -400,15 +400,6 @@ static word_t eval(int left, int right, bool *success) {
     case TK_LT: return left_val < right_val;
     case TK_BIT_AND: return left_val & right_val;
     case TK_BIT_OR: return left_val | right_val;
-    case TK_BIT_NOT: return ~left_val;
-    case TK_LOGIC_NOT: return !left_val;
-    case TK_DEREF: 
-      if (!in_pmem(left_val)) {
-        printf("invalid memory access at 0x%x\n", left_val);
-        *success = false;
-        return 0;
-      }
-      return *(word_t*)vaddr_read(left_val, 4);
     default: Assert(false, "invalid operator");
   }
 }
