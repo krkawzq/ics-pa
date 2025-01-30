@@ -244,19 +244,12 @@ static int cmd_d(char *args) {
     return 0;
   }
   int n = atoi(args);
-  if (n <= 0) {
+  if (n <= 0 || n > wp_used_count) {
     printf("Invalid number of watchpoints to delete\nMore infomation to [help d]\n");
     return 0;
   }
-  WP *wp = head;
-  for (int i = 0; i < n; i++) {
-    wp = wp->next;
-  }
-  free_wp(wp);
-  wp_used_count--;
-  for (int i = 0; i < wp_used_count; i++) {
-    wp_pool[i].NO = wp_used_count - i; // 重新编号, head -> 3, 2, 1
-  }
+
+  delete_watchpoint(n);
   return 0;
 }
 

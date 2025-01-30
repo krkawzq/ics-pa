@@ -19,8 +19,8 @@
 
 
 
-WP wp_pool[NR_WP] = {};
-WP *head = NULL, *free_ = NULL;
+static WP wp_pool[NR_WP] = {};
+static WP *head = NULL, *free_ = NULL;
 int wp_used_count = 0;
 
 void init_wp_pool() {
@@ -99,3 +99,17 @@ bool check_watchpoint() {
   }
   return changed;
 }
+
+void delete_watchpoint(int n) {
+  WP *wp = head;
+  for (int i = 0; i < wp_used_count - n; i++) { // 反向编号的
+    wp = wp->next;
+  }
+  free_wp(wp);
+  wp_used_count--;
+  for (int i = 0; i < wp_used_count; i++) {
+    wp_pool[i].NO = wp_used_count - i; // 重新编号, head -> 3, 2, 1
+  }
+}
+
+
