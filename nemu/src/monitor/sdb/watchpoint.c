@@ -22,8 +22,10 @@
 static WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;
 int wp_used_count = 0;
+int wp_no = 1;
 
 void init_wp_pool() {
+  wp_no = 1;
   wp_used_count = 0;
   int i;
   for (i = 0; i < NR_WP; i ++) {
@@ -117,14 +119,15 @@ bool check_watchpoint() {
 
 void delete_watchpoint(int n) { // n 是head中的编号
   WP *wp = head;
-  for (int i = 0; i < wp_used_count - n; i++) { // 反向编号的
+  while (wp != NULL) {
+    if (wp->NO == n) {
+      free_wp(wp);
+      break;
+    }
     wp = wp->next;
   }
-  free_wp(wp);
-  wp = head;
-  for (int i = 0; i < wp_used_count; i++) {
-    wp->NO = wp_used_count - i; // 重新编号, head -> 3, 2, 1
-    wp = wp->next;
+  if (wp == NULL) {
+    printf("watchpoint %d deleted\n", n);
   }
 }
 

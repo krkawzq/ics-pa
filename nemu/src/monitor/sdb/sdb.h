@@ -34,5 +34,6 @@ void print_watchpoint();
 void delete_watchpoint(int n);
 
 extern int wp_used_count;
+extern int wp_no;
 
 #endif
