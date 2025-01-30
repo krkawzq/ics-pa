@@ -44,7 +44,11 @@ int main(int argc, char *argv[]) {
 #endif
   char e[65536] = {};
   bool success;
-  fgets(e, 65536, stdin);
+  char *not_use = fgets(e, 65536, stdin);
+  if (not_use == NULL) {
+    printf("输入错误\n");
+    return 0;
+  }
   word_t result = expr(e, &success);
   printf("%d\n", result);
   return 0;
