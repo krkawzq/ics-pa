@@ -41,8 +41,13 @@ WP* new_wp() {
   }
   WP *wp = free_;
   free_ = free_->next;
-  wp->next = head;
-  head = wp;
+  if (head == NULL) {
+    head = wp;
+  } else {
+    wp->next = head;
+    head = wp;
+  }
+  wp_used_count++;
   return wp;
 }
 
@@ -64,8 +69,13 @@ void free_wp(WP *wp) {
   if (!found) {
     Assert(false, "wp not found");
   }
-  wp->next = free_;
-  free_ = wp;
+  if (free_ == NULL) {
+    free_ = wp;
+  } else {
+    wp->next = free_;
+    free_ = wp;
+  }
+  wp_used_count--;
 }
 
 static void _print_watchpoint(WP *wp) { // 递归后序遍历
@@ -106,7 +116,6 @@ void delete_watchpoint(int n) {
     wp = wp->next;
   }
   free_wp(wp);
-  wp_used_count--;
   for (int i = 0; i < wp_used_count; i++) {
     wp_pool[i].NO = wp_used_count - i; // 重新编号, head -> 3, 2, 1
   }
