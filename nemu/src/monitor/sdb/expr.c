@@ -286,7 +286,6 @@ static inline bool isNum(int type) {
   根据运算符合并左右两侧的表达式
 */
 static word_t eval(int left, int right, bool *success) {
-  *success = false;
   if (left > right) {
     Assert(false, "left > right");
   }
