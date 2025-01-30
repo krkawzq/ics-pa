@@ -235,7 +235,8 @@ static int cmd_w(char *args) {
     return 0;
   }
   WP *wp = new_wp(); // 0 -> 1
-  wp->NO = wp_used_count;
+  wp->NO = wp_no; // 唯一编号
+  wp_no++;
   wp->value = value;
   strcpy(wp->expr, args);
   return 0;
@@ -247,7 +248,7 @@ static int cmd_d(char *args) {
     return 0;
   }
   int n = atoi(args);
-  if (n <= 0 || n > wp_used_count) {
+  if (n <= 0) {
     printf("Invalid number of watchpoints to delete\nMore infomation to [help d]\n");
     return 0;
   }
