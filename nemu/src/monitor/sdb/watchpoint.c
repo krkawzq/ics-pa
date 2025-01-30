@@ -79,16 +79,6 @@ void print_watchpoint() {
   _print_watchpoint(head);
 }
 
-void check_watchpoint(int *state) {
-  WP *wp = head;
-  while (wp != NULL) {
-    if (wp->value != expr(wp->expr, NULL)) {
-      printf("watchpoint %d: %s\n", wp->NO, wp->expr);
-    }
-    wp = wp->next;
-  }
-}
-
 bool check_watchpoint() {
   if (wp_used_count == 0) {
     return false;
