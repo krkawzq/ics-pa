@@ -110,8 +110,8 @@ bool check_watchpoint() {
     if (!success) Assert(false, "unknown error in check_watchpoint");
     if (wp->value != value) {
       printf("watchpoint %d: %s\n", wp->NO, wp->expr);
-      printf("old value: %d\n", wp->value);
-      printf("new value: %d\n", value);
+      printf("old value: %u\n", wp->value);
+      printf("new value: %u\n", value);
       wp->value = value;
       changed = true;
     }
