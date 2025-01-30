@@ -58,28 +58,31 @@ void free_wp(WP *wp) {
   if (wp == NULL) {
     Assert(false, "wp is NULL");
   }
-  // 需要将wp从head链表中删除
-  WP *p = head;
-  bool found = false;
-  while (p != NULL) {
-    if (p->next == wp) {
-      p->next = wp->next;
-      found = true;
-      break;
+
+  // 从head链表中删除wp节点
+  if (head == NULL) {
+    Assert(false, "head is NULL");
+  }
+
+  if (head == wp) { // wp是头节点
+    head = wp->next;
+  } else { // wp不是头节点,需要找到wp的前驱节点
+    WP *prev = head;
+    while (prev->next != wp) {
+      prev = prev->next;
+      if (prev == NULL) { // 遍历完整个链表都没找到wp
+        Assert(false, "wp not found in head list");
+      }
     }
-    p = p->next;
+    prev->next = wp->next;
   }
-  if (!found) {
-    Assert(false, "wp not found");
-  }
-  if (free_ == NULL) {
-    free_ = wp;
-    free_->next = NULL;
-  } else {
-    wp->next = free_;
-    free_ = wp;
-  }
+
+  // 将wp加入free_链表
+  wp->next = free_;
+  free_ = wp;
+
   wp_used_count--;
+  Assert(wp_used_count >= 0, "wp_used_count < 0");
 }
 
 static void _print_watchpoint(WP *wp) { // 递归后序遍历
