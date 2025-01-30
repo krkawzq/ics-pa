@@ -191,6 +191,7 @@ static bool make_token(char *e) {
         case TK_NUM_HEX:
           tokens[nr_token].type = rules[i].token_type;
           strncpy(tokens[nr_token].str, substr_start, substr_len);
+          tokens[nr_token].str[substr_len] = '\0';
           nr_token++;
           break;
         
@@ -217,9 +218,11 @@ static bool make_token(char *e) {
           tokens[nr_token].type = TK_NUM_DEC;
           if (signal_positive) {
             strncpy(tokens[nr_token].str, substr_start, substr_len);
+            tokens[nr_token].str[substr_len] = '\0';
           } else {
             tokens[nr_token].str[0] = '-';
             strncpy(tokens[nr_token].str + 1, substr_start, substr_len);
+            tokens[nr_token].str[substr_len + 1] = '\0';
           }
           nr_token++;
           break;
