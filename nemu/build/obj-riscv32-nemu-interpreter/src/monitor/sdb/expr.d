@@ -17,6 +17,8 @@ deps_/home/wzq/ics-pa/nemu/build/obj-riscv32-nemu-interpreter/src/monitor/sdb/ex
   /home/wzq/ics-pa/nemu/include/utils.h \
     $(wildcard include/config/target/native/elf.h) \
   /home/wzq/ics-pa/nemu/include/memory/vaddr.h \
+  /home/wzq/ics-pa/nemu/include/memory/paddr.h \
+    $(wildcard include/config/pc/reset/offset.h) \
 
 /home/wzq/ics-pa/nemu/build/obj-riscv32-nemu-interpreter/src/monitor/sdb/expr.o: $(deps_/home/wzq/ics-pa/nemu/build/obj-riscv32-nemu-interpreter/src/monitor/sdb/expr.o)
 
