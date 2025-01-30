@@ -19,5 +19,17 @@
 #include <common.h>
 
 word_t expr(char *e, bool *success);
+void init_regex();
+void init_wp_pool();
+typedef struct watchpoint {
+  int NO;
+  struct watchpoint *next;
+  char expr[128];
+  word_t value;
+
+} WP;
+WP* new_wp();
+void free_wp(WP *wp);
+void print_watchpoint();
 
 #endif

@@ -17,18 +17,14 @@
 
 #define NR_WP 32
 
-typedef struct watchpoint {
-  int NO;
-  struct watchpoint *next;
 
-  /* TODO: Add more members if necessary */
-
-} WP;
 
 static WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;
+int wp_used_count = 0;
 
 void init_wp_pool() {
+  wp_used_count = 0;
   int i;
   for (i = 0; i < NR_WP; i ++) {
     wp_pool[i].NO = i;
@@ -39,5 +35,77 @@ void init_wp_pool() {
   free_ = wp_pool;
 }
 
-/* TODO: Implement the functionality of watchpoint */
+WP* new_wp() {
+  if (free_ == NULL) {
+    Assert(false, "no free watchpoint");
+  }
+  WP *wp = free_;
+  free_ = free_->next;
+  wp->next = head;
+  head = wp;
+  return wp;
+}
 
+void free_wp(WP *wp) {
+  if (wp == NULL) {
+    Assert(false, "wp is NULL");
+  }
+  // 需要将wp从head链表中删除
+  WP *p = head;
+  bool found = false;
+  while (p != NULL) {
+    if (p->next == wp) {
+      p->next = wp->next;
+      found = true;
+      break;
+    }
+    p = p->next;
+  }
+  if (!found) {
+    Assert(false, "wp not found");
+  }
+  wp->next = free_;
+  free_ = wp;
+}
+
+static void _print_watchpoint(WP *wp) { // 递归后序遍历
+  if (wp != NULL) {
+    _print_watchpoint(wp->next);
+  }
+  printf("watchpoint %d: %s\n", wp->NO, wp->expr);
+}
+
+void print_watchpoint() {
+  _print_watchpoint(head);
+}
+
+void check_watchpoint(int *state) {
+  WP *wp = head;
+  while (wp != NULL) {
+    if (wp->value != expr(wp->expr, NULL)) {
+      printf("watchpoint %d: %s\n", wp->NO, wp->expr);
+    }
+    wp = wp->next;
+  }
+}
+
+bool check_watchpoint() {
+  if (wp_used_count == 0) {
+    return false;
+  }
+  WP *wp = head;
+  word_t value;
+  bool changed = false;
+  while (wp != NULL) {
+    value = expr(wp->expr, NULL);
+    if (wp->value != value) {
+      printf("watchpoint %d: %s\n", wp->NO, wp->expr);
+      printf("old value: %d\n", wp->value);
+      printf("new value: %d\n", value);
+      wp->value = value;
+      changed = true;
+    }
+    wp = wp->next;
+  }
+  return changed;
+}

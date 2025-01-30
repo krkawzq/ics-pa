@@ -13,6 +13,11 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+/*
+使用了in_pmem
+后续需要修改到使用vaddr内的函数
+*/
+
 #include <isa.h>
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
@@ -85,7 +90,7 @@ static struct rule {
   int token_type;
 } rules[] = {
     {"\\s+",                 TK_SPACE        },
-    {"\\$(0|ra|sp|gp|tp|t[0-6]|s([0-9]|10|11)|a[0-7])", TK_REG},
+    {"\\$(0|ra|sp|gp|tp|pc|t[0-6]|s([0-9]|10|11)|a[0-7])", TK_REG},
     {"==",                  TK_LOGIC_EQ     },
     {"!=",                  TK_LOGIC_NEQ    },
     {"&&",                  TK_LOGIC_AND    },
@@ -132,7 +137,7 @@ void init_regex() {
 
 typedef struct token {
   int type;
-  char str[32]; // 固定buffer
+  char str[128]; // 固定buffer
 } Token;
 
 static Token tokens[32] __attribute__((used)) = {};
@@ -160,7 +165,7 @@ static bool make_token(char *e) {
         if (rules[i].token_type == TK_SPACE) {  
           continue;
         } // 跳过空格
-        if (substr_len >= 31) { 
+        if (substr_len >= 127) { 
           Assert(false, "too long token len");
         }
 
@@ -301,11 +306,17 @@ static word_t eval(int left, int right, bool *success) {
     switch (tokens[left].type) {
       case TK_NUM_DEC: return strtol(tokens[left].str, NULL, 10);
       case TK_NUM_HEX: return strtol(tokens[left].str, NULL, 16);
-      case TK_REG: return isa_reg_str2val(tokens[left].str + 1, success); // 去掉$
+      case TK_REG: 
+        if (strcmp(tokens[left].str, "$pc") == 0) {
+          return cpu.pc;
+        }
+        return isa_reg_str2val(tokens[left].str + 1, success); // 去掉$
+
       case TK_IDENT: 
         printf("not implemented\n");
         *success = false;
         return 0;
+        
       default: Assert(false, "invalid token type");
     }
   }
