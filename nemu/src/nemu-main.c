@@ -20,36 +20,16 @@ void am_init_monitor();
 void engine_start();
 int is_exit_status_bad();
 
-// int main(int argc, char *argv[]) {
-//   /* Initialize the monitor. */
-// #ifdef CONFIG_TARGET_AM
-//   am_init_monitor();
-// #else
-//   init_monitor(argc, argv);
-// #endif
-
-//   /* Start engine. */
-//   engine_start();
-
-//   return is_exit_status_bad();
-// }
-
-word_t expr(char *e, bool *success);
-
 int main(int argc, char *argv[]) {
+  /* Initialize the monitor. */
 #ifdef CONFIG_TARGET_AM
   am_init_monitor();
 #else
   init_monitor(argc, argv);
 #endif
-  char e[65536] = {};
-  bool success;
-  char *not_use = fgets(e, 65536, stdin);
-  if (not_use == NULL) {
-    printf("输入错误\n");
-    return 0;
-  }
-  word_t result = expr(e, &success);
-  printf("%d\n", result);
-  return 0;
+
+  /* Start engine. */
+  engine_start();
+
+  return is_exit_status_bad();
 }
