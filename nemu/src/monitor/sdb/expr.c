@@ -405,7 +405,7 @@ static word_t eval(int left, int right, bool *success) {
   
 
 word_t expr(char *e, bool *success) {
-  *success = false;  // 初始化为false，只有完全成功才设为true
+  *success = true;
   
   // 1. 词法分析
   if (!make_token(e)) {
