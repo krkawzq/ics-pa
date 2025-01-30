@@ -23,7 +23,7 @@
 #include <memory/vaddr.h>
 
 
-extern int wp_used_count;
+
 static int is_batch_mode = false;
 
 
@@ -224,15 +224,16 @@ static int cmd_p(char *args) {
 
 
 static int cmd_w(char *args) {
-  strcpy(wp->expr, args);
   bool success;
-  wp->value = expr(args, &success);
+  int value = expr(args, &success);
   if (!success) {
     printf("invalid expr\n");
     return 0;
   }
   WP *wp = new_wp();
   wp->NO = wp_used_count + 1;
+  wp->value = value;
+  strcpy(wp->expr, args);
   wp_used_count++;
   return 0;
 }
@@ -243,23 +244,12 @@ static int cmd_d(char *args) {
     return 0;
   }
   int n = atoi(args);
-  if (n <= 0) {
+  if (n <= 0 || n > wp_used_count) {
     printf("Invalid number of watchpoints to delete\nMore infomation to [help d]\n");
     return 0;
   }
-  WP *wp = head;
-  for (int i = 0; i < n; i++) {
-    wp = wp->next;
-  }
-  free_wp(wp);
-  wp_used_count--;
-  for (int i = 0; i < wp_used_count; i++) {
-    wp_pool[i].NO = wp_used_count - i; // 重新编号, head -> 3, 2, 1
-  }
-  return 0;
-}
 
-static int cmd_d(char *args) {
+  delete_watchpoint(n);
   return 0;
 }
 
