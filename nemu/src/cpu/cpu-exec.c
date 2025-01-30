@@ -42,12 +42,16 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 
 #ifdef CONFIG_WATCHPOINT
   if (check_watchpoint()) {
-    nemu_state.state = NEMU_STOP;
-    /*
+    nemu_state.state = nemu_state.state == NEMU_RUNNING ? NEMU_STOP : nemu_state.state;
+    /* 已修正
     一个bug
     如果w $pc
     那么build-in img结束后，会出现问题
     会出现错误，但是不知道为什么出现问题
+
+    找到了！
+    因为我们强制将状态置为了NEMU_STOP
+    会导致没有正确进入end状态，导致cpu执行了一个未定义的内存指令
     */
   }
 #endif

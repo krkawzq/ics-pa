@@ -229,7 +229,7 @@ static int cmd_w(char *args) {
     return 0;
   }
   bool success;
-  int value = expr(args, &success);
+  word_t value = expr(args, &success);
   if (!success) {
     printf("invalid expr\n");
     return 0;
