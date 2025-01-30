@@ -115,12 +115,13 @@ bool check_watchpoint() {
   return changed;
 }
 
-void delete_watchpoint(int n) {
+void delete_watchpoint(int n) { // n 是head中的编号
   WP *wp = head;
   for (int i = 0; i < wp_used_count - n; i++) { // 反向编号的
     wp = wp->next;
   }
   free_wp(wp);
+  wp = head;
   for (int i = 0; i < wp_used_count; i++) {
     wp->NO = wp_used_count - i; // 重新编号, head -> 3, 2, 1
     wp = wp->next;
