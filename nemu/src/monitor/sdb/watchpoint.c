@@ -19,8 +19,8 @@
 
 
 
-static WP wp_pool[NR_WP] = {};
-static WP *head = NULL, *free_ = NULL;
+WP wp_pool[NR_WP] = {};
+WP *head = NULL, *free_ = NULL;
 int wp_used_count = 0;
 
 void init_wp_pool() {

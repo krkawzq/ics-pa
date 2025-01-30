@@ -32,4 +32,9 @@ WP* new_wp();
 void free_wp(WP *wp);
 void print_watchpoint();
 
+extern WP wp_pool[32];
+extern WP *head;
+extern WP *free_;
+extern int wp_used_count;
+
 #endif
