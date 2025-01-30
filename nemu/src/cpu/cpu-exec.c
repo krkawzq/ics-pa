@@ -43,6 +43,12 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #ifdef CONFIG_WATCHPOINT
   if (check_watchpoint()) {
     nemu_state.state = NEMU_STOP;
+    /*
+    一个bug
+    如果w $pc
+    那么build-in img结束后，会出现问题
+    会出现错误，但是不知道为什么出现问题
+    */
   }
 #endif
 }
