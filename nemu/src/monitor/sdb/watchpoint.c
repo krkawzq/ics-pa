@@ -79,9 +79,10 @@ void free_wp(WP *wp) {
 }
 
 static void _print_watchpoint(WP *wp) { // 递归后序遍历
-  if (wp != NULL) {
-    _print_watchpoint(wp->next);
+  if (wp == NULL) {
+    return;
   }
+  _print_watchpoint(wp->next);
   printf("watchpoint %d: %s\n", wp->NO, wp->expr);
 }
 

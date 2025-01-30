@@ -224,6 +224,10 @@ static int cmd_p(char *args) {
 
 
 static int cmd_w(char *args) {
+  if (args == NULL) {
+    printf("empty expr\n");
+    return 0;
+  }
   bool success;
   int value = expr(args, &success);
   if (!success) {
