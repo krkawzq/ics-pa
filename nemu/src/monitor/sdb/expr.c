@@ -316,7 +316,7 @@ static word_t eval(int left, int right, bool *success) {
         printf("not implemented\n");
         *success = false;
         return 0;
-        
+
       default: Assert(false, "invalid token type");
     }
   }
@@ -426,6 +426,7 @@ word_t expr(char *e, bool *success) {
   // 1. 词法分析
   if (!make_token(e)) {
     // make_token已经打印了错误信息
+    *success = false;
     return 0;
   }
   word_t result = eval(0, nr_token - 1, success);
