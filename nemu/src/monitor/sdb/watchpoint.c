@@ -122,7 +122,8 @@ void delete_watchpoint(int n) {
   }
   free_wp(wp);
   for (int i = 0; i < wp_used_count; i++) {
-    wp_pool[i].NO = wp_used_count - i; // 重新编号, head -> 3, 2, 1
+    wp->NO = wp_used_count - i; // 重新编号, head -> 3, 2, 1
+    wp = wp->next;
   }
 }
 
