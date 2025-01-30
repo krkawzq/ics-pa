@@ -42,8 +42,9 @@ int main(int argc, char *argv[]) {
 #else
   init_monitor(argc, argv);
 #endif
-  char *e = gets(); // 从标准输入读取一行
+  char e[65536] = {};
   bool success;
+  fgets(e, 65536, stdin);
   word_t result = expr(e, &success);
   printf("%d\n", result);
   return 0;
