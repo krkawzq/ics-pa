@@ -52,8 +52,8 @@ void init_mem() {
 }
 
 word_t paddr_read(paddr_t addr, int len) {
-  if (likely(in_pmem(addr))) return pmem_read(addr, len);
-  IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
+  if (likely(in_pmem(addr))) return pmem_read(addr, len); // 目前直接使用了pmem_read读取，这是一个固定偏移，没有使用mmu
+  IFDEF(CONFIG_DEVICE, return mmio_read(addr, len)); // 使用device宏控制
   out_of_bound(addr);
   return 0;
 }
