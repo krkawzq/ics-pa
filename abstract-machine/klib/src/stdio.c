@@ -87,8 +87,79 @@ int vsprintf(char *out, const char *fmt, va_list ap) {
   panic("Not implemented");
 }
 
+static void sprintf_num(char *out, unsigned int num, int base, int *pos) {
+    char digits[] = "0123456789ABCDEF";
+    char buf[32];
+    int i = 0;
+    
+    // 处理0
+    if (num == 0) {
+        out[*pos] = '0';
+        (*pos)++;
+        return;
+    }
+    
+    // 转换数字
+    while (num) {
+        buf[i++] = digits[num % base];
+        num /= base;
+    }
+    
+    // 反向复制
+    while (--i >= 0) {
+        out[*pos] = buf[i];
+        (*pos)++;
+    }
+}
+
 int sprintf(char *out, const char *fmt, ...) {
-  panic("Not implemented");
+    va_list ap;
+    va_start(ap, fmt);
+    int pos = 0;
+    char ch;
+    
+    while ((ch = *fmt++)) {
+        if (ch != '%') {
+            out[pos++] = ch;
+            continue;
+        }
+        
+        ch = *fmt++;
+        switch(ch) {
+            case 'd': {
+                int num = va_arg(ap, int);
+                if (num < 0) {
+                    out[pos++] = '-';
+                    num = -num;
+                }
+                sprintf_num(out, num, 10, &pos);
+                break;
+            }
+            case 'x': {
+                unsigned int num = va_arg(ap, unsigned int);
+                sprintf_num(out, num, 16, &pos);
+                break;
+            }
+            case 's': {
+                char *str = va_arg(ap, char*);
+                while (*str) {
+                    out[pos++] = *str++;
+                }
+                break;
+            }
+            case 'c': {
+                out[pos++] = va_arg(ap, int);
+                break;
+            }
+            default:
+                out[pos++] = ch;
+                break;
+        }
+    }
+    
+    out[pos] = '\0';
+    va_end(ap);
+    return pos;
 }
 
 int snprintf(char *out, size_t n, const char *fmt, ...) {
