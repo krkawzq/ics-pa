@@ -146,9 +146,15 @@ static int cmd_info(char *args) {
     }
   } 
   #ifdef CONFIG_IRINGBUF
-  else if (strcmp("b", args) == 0) {
+  else if (strcmp("i", args) == 0) {
     void iringbuf_print();
     iringbuf_print();
+  }
+  #endif
+  #ifdef CONFIG_MTRACE
+  else if (strcmp("m", args) == 0) {
+    void mtrace_print();
+    mtrace_print();
   }
   #endif
   else {
@@ -170,7 +176,7 @@ static int cmd_si(char *args) {
   return 0;
 }
 
-static int cmd_x(char *args) {
+static int cmd_x(char *args) { // 读取内存
   if (args == NULL) {
     printf("Need args [x n expr], [help x] to know more\n");
     return 0;

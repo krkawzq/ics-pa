@@ -16,6 +16,8 @@
 #include <isa.h>
 #include <memory/paddr.h>
 
+// 内存跟踪
+// 但是其实会有问题，因为sdb调试的时候，使用vaddr访问也会被记录
 #ifdef CONFIG_MTRACE
 #define MTRACE_SIZE 32
 char mtrace_ringbuf[MTRACE_SIZE][128];
