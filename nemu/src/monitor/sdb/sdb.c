@@ -193,12 +193,6 @@ static int cmd_x(char *args) {
     return 0;
   }
   
-  /*
-  DONE:
-  - 解析值，使用atoi,支持hex,oct,dec
-  TODO:
-  - 解析表达式
-  */
   vaddr_t addr = strtol(args, NULL, 0);
   
   printf("addr:0x%08x\n", addr);
