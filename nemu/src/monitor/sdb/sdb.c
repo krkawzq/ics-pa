@@ -128,6 +128,12 @@ static int cmd_q(char *args) {
 static int cmd_help(char *args);
 
 static int cmd_info(char *args) {
+  int len = strlen(args);
+  for (int i = len - 1; i >= 0; i--) {
+    if (args[i] == ' ') {
+      args[i] = '\0';
+    }
+  } // 去掉最后的空格
   if (args == NULL) {
     printf("Need args w/r, [help info] to know more\n");
   } else if (strcmp("r", args) == 0) {
