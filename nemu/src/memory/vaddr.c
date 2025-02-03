@@ -33,9 +33,9 @@ void mtrace_format(char *buf, vaddr_t addr, int len, word_t data, bool is_read) 
     }
   } else {
     switch (len) {
-      case 1: sprintf(buf, "  WRITE  0x%08x %d  %02x\n", addr, len, data); break;
-      case 2: sprintf(buf, "  WRITE  0x%08x %d  %04x\n", addr, len, data); break;
-      case 4: sprintf(buf, "  WRITE  0x%08x %d  %08x\n", addr, len, data); break;
+      case 1: sprintf(buf, " WRITE  0x%08x %d  %02x\n", addr, len, data); break;
+      case 2: sprintf(buf, " WRITE  0x%08x %d  %04x\n", addr, len, data); break;
+      case 4: sprintf(buf, " WRITE  0x%08x %d  %08x\n", addr, len, data); break;
     }
   }
 }
