@@ -63,20 +63,25 @@ size_t ringbuf_idx = 0;
 size_t total_insts = 0;
 
 void iringbuf_print() {
+  if (total_insts == 0) {
+    printf("No instructions\n");
+    return;
+  }
+
   if (total_insts < 16) {
     for (size_t i = 0; i < ringbuf_idx - 1; i++) {
-      printf("    %s\n", ringbuf[i]);
+      printf("  %s\n", ringbuf[i]);
     }
-    printf("->  %s\n", ringbuf[ringbuf_idx - 1]);
+    printf("->%s\n", ringbuf[ringbuf_idx - 1]);
   }
   else {
     for (size_t i = (ringbuf_idx + 1) % 16; i < 16; i++) {
-      printf("%s\n", ringbuf[i]);
+      printf("  %s\n", ringbuf[i]);
     }
     for (size_t i = 0; i < ringbuf_idx; i++) {
-      printf("    %s\n", ringbuf[i]);
+      printf("  %s\n", ringbuf[i]);
     }
-    printf("->  %s\n", ringbuf[ringbuf_idx]);
+    printf("->%s\n", ringbuf[ringbuf_idx]);
   }
 }
 #endif
