@@ -138,7 +138,14 @@ static int cmd_info(char *args) {
     } else {
       print_watchpoint();
     }
-  } else {
+  } 
+  #ifdef CONFIG_IRINGBUF
+  else if (strcmp("b", args) == 0) {
+    void iringbuf_print();
+    iringbuf_print();
+  }
+  #endif
+  else {
     printf("Unknown usage, [help info] to know more\n");
   }
   return 0;
