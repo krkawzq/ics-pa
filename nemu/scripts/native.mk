@@ -48,3 +48,12 @@ clean-tools: $(clean-tools)
 clean-all: clean distclean clean-tools
 
 .PHONY: run gdb run-env clean-tools clean-all $(clean-tools)
+
+# 同步compile_commands.json
+.PHONY: compile_cmds
+compile_cmds:
+	@echo "Syncing compile_commands.json..."
+	compiledb -n make -B run
+	@echo "copying compile_commands.json to <workspace>/compile_commands.json"
+	mv compile_commands.json ../compile_commands.json
+	@echo "Done"
