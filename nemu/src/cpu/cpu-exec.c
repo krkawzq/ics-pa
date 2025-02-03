@@ -57,7 +57,31 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 }
 
-static void exec_once(Decode *s, vaddr_t pc) {//单步执行
+#ifdef CONFIG_IRINGBUF // 全局的ringbuf
+char ringbuf[16][128];
+size_t ringbuf_idx = 0;
+size_t total_insts = 0;
+
+void iringbuf_print() {
+  if (total_insts < 16) {
+    for (size_t i = 0; i < ringbuf_idx - 1; i++) {
+      printf("    %s\n", ringbuf[i]);
+    }
+    printf("->  %s\n", ringbuf[ringbuf_idx - 1]);
+  }
+  else {
+    for (size_t i = (ringbuf_idx + 1) % 16; i < 16; i++) {
+      printf("%s\n", ringbuf[i]);
+    }
+    for (size_t i = 0; i < ringbuf_idx; i++) {
+      printf("    %s\n", ringbuf[i]);
+    }
+    printf("->  %s\n", ringbuf[ringbuf_idx]);
+  }
+}
+#endif
+
+static void exec_once(Decode *s, vaddr_t pc) { //单步执行
   s->pc = pc;
   s->snpc = pc;
   isa_exec_once(s);
@@ -86,15 +110,23 @@ static void exec_once(Decode *s, vaddr_t pc) {//单步执行
   disassemble(p, s->logbuf + sizeof(s->logbuf) - p,
       MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst, ilen);
 #endif
+
+#ifdef CONFIG_IRINGBUF
+  sprintf(ringbuf[ringbuf_idx], "0x%x:  ", pc); // 打印地址, 长度为 13 （0x00000000: ）
+  strncpy(ringbuf[ringbuf_idx] + 13, p, 114);
+  ringbuf[ringbuf_idx][127] = '\0';
+  ringbuf_idx = (ringbuf_idx + 1) % 16;
+  total_insts ++;
+#endif
 }
 
 static void execute(uint64_t n) {//n步执行 n是无符号数，传入-1时，会最大执行
-  Decode s;
+  Decode s; // 每次都是重新创建的解码器
   for (;n > 0; n --) {
     exec_once(&s, cpu.pc);
     g_nr_guest_inst ++;
     trace_and_difftest(&s, cpu.pc);
-    if (nemu_state.state != NEMU_RUNNING) break;
+    if (nemu_state.state != NEMU_RUNNING) break; // 不为running时跳出循环
     IFDEF(CONFIG_DEVICE, device_update());
   }
 }
@@ -131,16 +163,25 @@ void cpu_exec(uint64_t n) {
   uint64_t timer_end = get_time();
   g_timer += timer_end - timer_start;
 
-  switch (nemu_state.state) {
+  switch (nemu_state.state) { // 处理跳出后状态
     case NEMU_RUNNING: nemu_state.state = NEMU_STOP; break;
 
-    case NEMU_END: case NEMU_ABORT:
+    case NEMU_END: case NEMU_ABORT: // 出现问题
       Log("nemu: %s at pc = " FMT_WORD,
           (nemu_state.state == NEMU_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :
            (nemu_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :
             ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED))),
           nemu_state.halt_pc);
+      // 此处输出iringbuf
+      #ifdef CONFIG_IRINGBUF
+        if (nemu_state.state == NEMU_ABORT) {
+          printf("Instructions:\n");
+          iringbuf_print();
+        }
+      #endif
+
+
       // fall through
-    case NEMU_QUIT: statistic();
+    case NEMU_QUIT: statistic(); // 记录运行信息
   }
 }

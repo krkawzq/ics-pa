@@ -216,7 +216,12 @@ config RT_CHECK
 
 endmenu
 
+menu "My Configs"
 config WATCHPOINT
   bool "Enable watchpoint"
   default n
 
+config IRINGBUF
+  bool "Enable instruction ring buffer"
+  default n
+endmenu
